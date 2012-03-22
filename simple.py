@@ -16,11 +16,11 @@ def MakeUUID():
     return uuid4().__str__().upper()
 
 def MakeRTFBlob(text):
-    return b64encode('{\\rtf1\\ansi\\ansicpg1252\\cocoartf1038\\cocoasubrtf360\n{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica;}\n{\\colortbl;\\red255\\green255\\blue255;}\n\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\qc\\pardirnatural\n\n\\f0\\fs102\\fsmilli51200 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\outl0\\strokewidth-20 \\strokec0 ' + text.replace("\n",'\\\n') + '}')
+    return b64encode(u'{\\rtf1\\ansi\\ansicpg1252\\cocoartf1038\\cocoasubrtf360\n{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica;}\n{\\colortbl;\\red255\\green255\\blue255;}\n\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\qc\\pardirnatural\n\n\\f0\\fs102\\fsmilli51200 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\outl0\\strokewidth-20 \\strokec0 ' + text.replace("\n",'\\\n') + u'}')
 
 # XML sections.
 
-def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
+def VerseBlock(block_name, block_type, text_sections, color=u'0 0 0 0'):
     first_sections = []
     for section in text_sections:
         first_sections += map( lambda x: x.strip(), section.split('\n\n'))
@@ -28,7 +28,7 @@ def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
     for section in first_sections:
         all_sections += map( lambda x: x.strip(), section.split('[---]'))
 
-    return '<RVSlideGrouping name="' + block_name + '" uuid="'+ MakeUUID() + '" color="' + color + '" serialization-array-index="0"><slides containerClass="NSMutableArray">' + ''.join(map(SlideBlock, all_sections)) + '</slides></RVSlideGrouping>'
+    return u'<RVSlideGrouping name="' + block_name + u'" uuid="'+ MakeUUID() + u'" color="' + color + u'" serialization-array-index="0"><slides containerClass="NSMutableArray">' + u''.join(map(SlideBlock, all_sections)) + u'</slides></RVSlideGrouping>'
 
 def SlideBlock(text):
     return u'<RVDisplaySlide backgroundColor="0 0 0 1" enabled="1" highlightColor="0 0 0 0" hotKey="" label="" notes="" slideType="1" sort_index="0" UUID="' + MakeUUID() + u'" drawingBackgroundColor="0" chordChartPath="" serialization-array-index="0"><cues containerClass="NSMutableArray"></cues><displayElements containerClass="NSMutableArray"><RVTextElement displayDelay="0" displayName="Default" locked="0" persistent="0" typeID="0" fromTemplate="1" bezelRadius="0" drawingFill="0" drawingShadow="1" drawingStroke="0" fillColor="0 0 0 0" rotation="0" source="" adjustsHeightToFit="0" verticalAlignment="0" RTFData="' + MakeRTFBlob(text) + u'" revealType="0" serialization-array-index="0"><_-RVRect3D-_position x="30" y="30" z="0" width="964" height="708"></_-RVRect3D-_position><_-D-_serializedShadow containerClass="NSMutableDictionary"><NSNumber serialization-native-value="4" serialization-dictionary-key="shadowBlurRadius"></NSNumber><NSColor serialization-native-value="0 0 0 1" serialization-dictionary-key="shadowColor"></NSColor><NSMutableString serialization-native-value="{2.82843, -2.82843}" serialization-dictionary-key="shadowOffset"></NSMutableString></_-D-_serializedShadow><stroke containerClass="NSMutableDictionary"><NSColor serialization-native-value="0 0 0 0" serialization-dictionary-key="RVShapeElementStrokeColorKey"></NSColor><NSNumber serialization-native-value="0" serialization-dictionary-key="RVShapeElementStrokeWidthKey"></NSNumber></stroke></RVTextElement></displayElements><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject></RVDisplaySlide>'
@@ -44,19 +44,35 @@ def HeaderBlock(Name=u'New Song',
     return u'<RVPresentationDocument height="768" width="1024" versionNumber="500" docType="0" creatorCode="1349676880" lastDateUsed="' + datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + u'" usedCount="0" category="Song" resourcesDirectory="" backgroundColor="0 0 0 1" drawingBackgroundColor="0" notes="' + Notes + u'" artist="' + Artist + u'" author="'+ Authors +u'" album="" CCLIDisplay="0" CCLIArtistCredits="" CCLISongTitle="' + Name + u'" CCLIPublisher="' + Publisher + u'" CCLICopyrightInfo="' + CCLICopyRightInfo + u'" CCLILicenseNumber="' + CCLILicenceNumber + u'" chordChartPath=""><timeline timeOffSet="0" selectedMediaTrackIndex="0" unitOfMeasure="60" duration="0" loop="0"><timeCues containerClass="NSMutableArray"></timeCues><mediaTracks containerClass="NSMutableArray"></mediaTracks></timeline><bibleReference containerClass="NSMutableDictionary"></bibleReference><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject><groups containerClass="NSMutableArray">'
 
 def FooterBlock():
-    return '</groups><arrangements containerClass="NSMutableArray"></arrangements></RVPresentationDocument>' 
+    return u'</groups><arrangements containerClass="NSMutableArray"></arrangements></RVPresentationDocument>' 
 
 def uni(x):
     """ Unicode None! """
     return x if x != None else u''
 
-VERBOSE_NAMES = {u'c':'Chorus',u'v':'Verse',u'':'','':'',u'b':'Bridge',u'e':'Ending',u'p':'Pre-Chorus'}
+
 def Verbose_names(key):
+    VERBOSE_NAMES = {u'c':u'Chorus',u'v':u'Verse',u'':u'','':u'',u'b':u'Bridge',u'e':u'Ending',u'p':u'Pre-Chorus'}
     if key in VERBOSE_NAMES:
         return VERBOSE_NAMES[key]
     else:
         return key
-VERSE_COLORS = ['0 0 1 1', '0 1 0 1','1 0.5 0 1','1 0 1 1', '0 1 1 1', '0.5 1 0 1','1 1 0.5 1', '0 0 1 1', '0 1 0 1','1 0.5 0 1','1 0 1 1', '0 1 1 1', '0.5 1 0 1','1 1 0.5 1']
+
+
+VERSE_COLORS = [u'0 0 1 1', 
+                u'0 1 0 1',
+                u'1 0.5 0 1',
+                u'1 0 1 1', 
+                u'0 1 1 1', 
+                u'0.5 1 0 1',
+                u'1 1 0.5 1', 
+                u'0 0 1 1',
+                u'0 1 0 1',
+                u'1 0.5 0 1',
+                u'1 0 1 1',
+                u'0 1 1 1',
+                u'0.5 1 0 1',
+                u'1 1 0.5 1']
 
 ###################################################
 #
@@ -106,7 +122,7 @@ def get_song_authornames(song_id):
 
 
 for song in songs:
-    song_lyrics = xml.dom.minidom.parseString(song['lyrics'].encode('ascii','ignore'))
+    song_lyrics = xml.dom.minidom.parseString(song['lyrics'])
 
     song_authors = get_song_authornames(song['id'])
 
@@ -119,7 +135,7 @@ for song in songs:
                           CCLILicenceNumber=uni(song['ccli_number']),
                           Notes=uni(song['comments']),
                           CCLICopyRightInfo=uni(song['copyright']),
-                          Authors=song_authors).encode('ascii','ignore') )
+                          Authors=song_authors) )
 
     for verse in song_sections:
         # Verse
