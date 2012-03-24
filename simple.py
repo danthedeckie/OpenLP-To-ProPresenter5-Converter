@@ -18,6 +18,7 @@ OUTPUT_DIRECTORY = "/tmp/"
 
 DEFAULT_FONT = "Helvetica"
 DEFAULT_COLOR = (255,255,255) # RGB, white.
+MAX_LINES = 4
 
 OPEN_DIR_ON_EXIT = True # If you want to open the dir of new files...
 
@@ -118,7 +119,30 @@ def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
     #    current_list = []
     #    for item in list_to_split:
     #        current_list += 
-    #    return 
+    #    return
+
+    def list_split_substrings_by_lines(max_lines, oldlist):
+        # Very imperative, I know.  There's probably a better 
+        # (functional/pythonic) way to do this...
+        new_list = []
+        for raw_item in oldlist:
+            x = 1
+            new_item = ''
+            for line in raw_item.splitlines():
+                if x < max_lines:
+                    new_item += line + '\n'
+                    x += 1
+                else:
+                    new_item += line
+                    new_list.append(new_item)
+                    new_item = ''
+                    x = 1
+            if new_item != '':
+                new_list.append(new_item)
+
+        new_list.reverse()# Not sure why reverse is needed...
+        return new_list 
+
     
     def list_split_substrings(split_by, oldlist):
         newlist = []
@@ -127,10 +151,11 @@ def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
         return newlist
 
 
-    all_sections = map(unicode.strip, 
-                       list_split_substrings('\n\n', 
-                                             list_split_substrings ('[---]', 
-                                                  text_sections)))
+    all_sections = map(unicode.strip,
+                       list_split_substrings_by_lines(MAX_LINES,  
+                           list_split_substrings('\n\n', 
+                               list_split_substrings ('[---]', 
+                                   text_sections))))
 
     return ('<RVSlideGrouping name="' + block_name + '" uuid="'+ make_uuid() +
             '" color="' + color + '" serialization-array-index="0"><slides containerClass="NSMutableArray">' + 
@@ -235,7 +260,6 @@ for song_raw in songs:
     # Open the appropriate file:
 
     f = open(OUTPUT_DIRECTORY + song['title'].replace('/','') + '.pro5','w')
-
 
     # Write the header
 
