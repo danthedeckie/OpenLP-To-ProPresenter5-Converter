@@ -24,6 +24,14 @@ On Mac, you can open /tmp/ with (in Finder) Menu->Go->Go To folder.
 
 By default, the script will open the /tmp/ directory when it's finished running.
 
+## Options:
+
+By default, the converter will set the font as Helvetica,
+the background color as black, and the text color as white.
+It will put a maximum of 4 lines per slide.
+
+These settings are all at the top of the converter.py script, and should be very easy to change.
+
 ## TODO:
 
 - Make it rugged

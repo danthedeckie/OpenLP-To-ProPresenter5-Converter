@@ -18,6 +18,8 @@ OUTPUT_DIRECTORY = "/tmp/"
 
 DEFAULT_FONT = "Helvetica"
 DEFAULT_COLOR = (255,255,255) # RGB, white.
+BACKGROUND_COLOR = '0 0 0 1' # RGBA black.
+
 MAX_LINES = 4
 
 OPEN_DIR_ON_EXIT = True # If you want to open the dir of new files...
@@ -164,7 +166,7 @@ def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
 
 
 def SlideBlock(text):
-    return '<RVDisplaySlide backgroundColor="0 0 0 1" enabled="1" highlightColor="0 0 0 0" hotKey="" label="" notes="" slideType="1" sort_index="0" UUID="' + make_uuid() + '" drawingBackgroundColor="0" chordChartPath="" serialization-array-index="0"><cues containerClass="NSMutableArray"></cues><displayElements containerClass="NSMutableArray"><RVTextElement displayDelay="0" displayName="Default" locked="0" persistent="0" typeID="0" fromTemplate="1" bezelRadius="0" drawingFill="0" drawingShadow="1" drawingStroke="0" fillColor="0 0 0 0" rotation="0" source="" adjustsHeightToFit="0" verticalAlignment="0" RTFData="' + MakeRTFBlob(text) + '" revealType="0" serialization-array-index="0"><_-RVRect3D-_position x="30" y="30" z="0" width="964" height="708"></_-RVRect3D-_position><_-D-_serializedShadow containerClass="NSMutableDictionary"><NSNumber serialization-native-value="4" serialization-dictionary-key="shadowBlurRadius"></NSNumber><NSColor serialization-native-value="0 0 0 1" serialization-dictionary-key="shadowColor"></NSColor><NSMutableString serialization-native-value="{2.82843, -2.82843}" serialization-dictionary-key="shadowOffset"></NSMutableString></_-D-_serializedShadow><stroke containerClass="NSMutableDictionary"><NSColor serialization-native-value="0 0 0 0" serialization-dictionary-key="RVShapeElementStrokeColorKey"></NSColor><NSNumber serialization-native-value="0" serialization-dictionary-key="RVShapeElementStrokeWidthKey"></NSNumber></stroke></RVTextElement></displayElements><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject></RVDisplaySlide>'
+    return '<RVDisplaySlide backgroundColor="' + BACKGROUND_COLOR + '" enabled="1" highlightColor="0 0 0 0" hotKey="" label="" notes="" slideType="1" sort_index="0" UUID="' + make_uuid() + '" drawingBackgroundColor="0" chordChartPath="" serialization-array-index="0"><cues containerClass="NSMutableArray"></cues><displayElements containerClass="NSMutableArray"><RVTextElement displayDelay="0" displayName="Default" locked="0" persistent="0" typeID="0" fromTemplate="1" bezelRadius="0" drawingFill="0" drawingShadow="1" drawingStroke="0" fillColor="0 0 0 0" rotation="0" source="" adjustsHeightToFit="0" verticalAlignment="0" RTFData="' + MakeRTFBlob(text) + '" revealType="0" serialization-array-index="0"><_-RVRect3D-_position x="30" y="30" z="0" width="964" height="708"></_-RVRect3D-_position><_-D-_serializedShadow containerClass="NSMutableDictionary"><NSNumber serialization-native-value="4" serialization-dictionary-key="shadowBlurRadius"></NSNumber><NSColor serialization-native-value="0 0 0 1" serialization-dictionary-key="shadowColor"></NSColor><NSMutableString serialization-native-value="{2.82843, -2.82843}" serialization-dictionary-key="shadowOffset"></NSMutableString></_-D-_serializedShadow><stroke containerClass="NSMutableDictionary"><NSColor serialization-native-value="0 0 0 0" serialization-dictionary-key="RVShapeElementStrokeColorKey"></NSColor><NSNumber serialization-native-value="0" serialization-dictionary-key="RVShapeElementStrokeWidthKey"></NSNumber></stroke></RVTextElement></displayElements><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject></RVDisplaySlide>'
 
 def HeaderBlock(Name='New Song', 
                 Authors='', 
@@ -257,6 +259,16 @@ for song_raw in songs:
 
     song_authors = get_song_authornames(song_raw['id'])
 
+    # Find the copyright year (this is so much briefer in perl...)
+
+    get_year = re.match(r'^\d\d\d\d', song['copyright'])
+
+    if get_year != None:
+        copyright_year = get_year.group()
+        song['copyright'] = song['copyright'][4:].strip()
+    else:
+        copyright_year = ''
+
     # Open the appropriate file:
 
     f = open(OUTPUT_DIRECTORY + song['title'].replace('/','') + '.pro5','w')
@@ -266,7 +278,8 @@ for song_raw in songs:
     f.write ( HeaderBlock(Name=uni(song['title']),
                           CCLILicenceNumber=uni(song['ccli_number']),
                           Notes=uni(song['comments']),
-                          CCLICopyRightInfo=uni(song['copyright']),
+                          CCLICopyRightInfo=uni(copyright_year),
+                          Publisher=uni(song['copyright']),
                           Authors=song_authors) )
 
     # Write the verses (slides)
