@@ -10,14 +10,19 @@ Work in Progress, Please enjoy.
 
 Currently a bit basic.
 
-Copy your songs.sqlite file into the same directory as this script, and run the script.
+The script will try to load the database from
+
+~/Library/Application Support/openlp/Data/songs/songs.sqlite
+
+( ~ means "Your home directory" )
+
+To change that, edit the line which says "OPENLP_DATABASE" in converter.py
 
 It will create all the XML files in /tmp/
 
 On Mac, you can open /tmp/ with (in Finder) Menu->Go->Go To folder.
 
-On Windows, you'll currently need to edit the simple.py file to make it point to somewhere sensible.
-
+By default, the script will open the /tmp/ directory when it's finished running.
 
 ## TODO:
 
