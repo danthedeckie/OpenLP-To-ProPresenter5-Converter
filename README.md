@@ -2,7 +2,7 @@
 
 This is a simple fast converter from OpenLP's sqlite database to ProPresenter 5 XML files.
 
-It works quickly, and does our 2800 song database in about 10 seconds.
+It works quickly, and does our 2700 song database in about 6 seconds.
 
 Work in Progress, Please enjoy.
 
@@ -44,8 +44,8 @@ Python. (2.6ish) Should come built-in on OSX.
 
 - Make it rugged
 - Make it pretty
-- Make a .app & .exe
-- Make profit.
+- Make a .app & .exe (with simple GUIs)
+- Make profit. (or not...)
 
 ## Licence:
 

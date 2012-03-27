@@ -25,7 +25,7 @@ OPENLP_DATABASE = "~/Library/Application Support/openlp/Data/songs/songs.sqlite"
 OUTPUT_DIRECTORY = "/tmp/"
 
 DEFAULT_FONT = "Helvetica"
-DEFAULT_COLOR = (255, 255, 255)  # RGB, white.
+DEFAULT_COLOR = ('255', '255', '255')  # RGB, white.
 BACKGROUND_COLOR = '0 0 0 1'     # RGBA black.
 
 MAX_LINES = 4
@@ -84,8 +84,6 @@ from datetime import datetime    # Guess.
 #
 ###################################################
 
-
-
 def uni(x):
     """ Turns 'None' from empty sqlite columns into an empty string,
         or else returns the original string. """
@@ -129,10 +127,11 @@ def AntiUnicode(text):
 
 
 def MakeRTFBlob(text):
-    return b64encode('{\\rtf1\\ansi\\ansicpg1252\\cocoartf1038\\cocoasubrtf360\n{\\fonttbl\\f0\\fswiss\\fcharset0 '+DEFAULT_FONT+';}\n'
-                    +'{\\colortbl;\\red'+str(DEFAULT_COLOR[0])+'\\green'+str(DEFAULT_COLOR[1])+'\\blue'+str(DEFAULT_COLOR[2])+';}\n'
-                    +'\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\qc\\pardirnatural\n\n'
-                    +'\\f0\\fs102\\fsmilli51200 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\outl0\\strokewidth-20 \\strokec0 \\uc0 ' + AntiUnicode(text) + '}')
+    return b64encode(
+             '{\\rtf1\\ansi\\ansicpg1252\\cocoartf1038\\cocoasubrtf360\n{\\fonttbl\\f0\\fswiss\\fcharset0 '+DEFAULT_FONT+';}\n' 
+           + '{\\colortbl;\\red'+DEFAULT_COLOR[0]+'\\green'+DEFAULT_COLOR[1]+'\\blue'+DEFAULT_COLOR[2]+';}\n'
+           + '\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\qc\\pardirnatural\n\n'
+           + '\\f0\\fs102\\fsmilli51200 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\outl0\\strokewidth-20 \\strokec0 \\uc0 ' + AntiUnicode(text) + '}')
 
 # XML sections.
 
@@ -178,7 +177,20 @@ def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
 
 
     all_sections = map(unicode.strip,
-                       list_split_substrings_by_lines(MAX_LINES,
+                       list_split_substrings_by_lines(MAX_LINES,  
+                           list_split_substrings('\n\n', 
+                               list_split_substrings ('[---]', 
+                                   text_sections))))
+
+    return ('<RVSlideGrouping name="' + block_name + '" uuid="' + make_uuid()
+           + '" color="' + color + '" serialization-array-index="0"><slides containerClass="NSMutableArray">'
+           + ''.join(map(SlideBlock, all_sections))
+           + '</slides></RVSlideGrouping>')
+
+def SlideBlock(text):
+    return '<RVDisplaySlide backgroundColor="' + BACKGROUND_COLOR + '" enabled="1" highlightColor="0 0 0 0" hotKey="" label="" notes="" slideType="1" sort_index="0" UUID="' + make_uuid() + '" drawingBackgroundColor="0" chordChartPath="" serialization-array-index="0"><cues containerClass="NSMutableArray"></cues><displayElements containerClass="NSMutableArray"><RVTextElement displayDelay="0" displayName="Default" locked="0" persistent="0" typeID="0" fromTemplate="1" bezelRadius="0" drawingFill="0" drawingShadow="1" drawingStroke="0" fillColor="0 0 0 0" rotation="0" source="" adjustsHeightToFit="0" verticalAlignment="0" RTFData="' + MakeRTFBlob(text) + '" revealType="0" serialization-array-index="0"><_-RVRect3D-_position x="30" y="30" z="0" width="964" height="708"></_-RVRect3D-_position><_-D-_serializedShadow containerClass="NSMutableDictionary"><NSNumber serialization-native-value="4" serialization-dictionary-key="shadowBlurRadius"></NSNumber><NSColor serialization-native-value="0 0 0 1" serialization-dictionary-key="shadowColor"></NSColor><NSMutableString serialization-native-value="{2.82843, -2.82843}" serialization-dictionary-key="shadowOffset"></NSMutableString></_-D-_serializedShadow><stroke containerClass="NSMutableDictionary"><NSColor serialization-native-value="0 0 0 0" serialization-dictionary-key="RVShapeElementStrokeColorKey"></NSColor><NSNumber serialization-native-value="0" serialization-dictionary-key="RVShapeElementStrokeWidthKey"></NSNumber></stroke></RVTextElement></displayElements><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject></RVDisplaySlide>'
+
+
 
 def HeaderBlock(Name='New Song',
                 Authors='',
@@ -187,7 +199,8 @@ def HeaderBlock(Name='New Song',
                 CCLILicenceNumber='',
                 Publisher='',
                 Notes=''):
-    return '<RVPresentationDocument height="768" width="1024" versionNumber="500" docType="0" creatorCode="1349676880" lastDateUsed="' + datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + '" usedCount="0" category="Song" resourcesDirectory="" backgroundColor="0 0 0 1" drawingBackgroundColor="0" notes="' + Notes + '" artist="' + Artist + '" author="'+ Authors +'" album="" CCLIDisplay="0" CCLIArtistCredits="" CCLISongTitle="' + Name + '" CCLIPublisher="' + Publisher + '" CCLICopyrightInfo="' + CCLICopyRightInfo + '" CCLILicenseNumber="' + CCLILicenceNumber + '" chordChartPath=""><timeline timeOffSet="0" selectedMediaTrackIndex="0" unitOfMeasure="60" duration="0" loop="0"><timeCues containerClass="NSMutableArray"></timeCues><mediaTracks containerClass="NSMutableArray"></mediaTracks></timeline><bibleReference containerClass="NSMutableDictionary"></bibleReference><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject><groups containerClass="NSMutableArray">'
+
+    return '<RVPresentationDocument height="768" width="1024" versionNumber="500" docType="0" creatorCode="1349676880" lastDateUsed="' + datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + '" usedCount="0" category="Song" resourcesDirectory="" backgroundColor="0 0 0 1" drawingBackgroundColor="0" notes="' + Notes + '" artist="' + Artist + '" author="' + Authors + '" album="" CCLIDisplay="0" CCLIArtistCredits="" CCLISongTitle="' + Name + '" CCLIPublisher="' + Publisher + '" CCLICopyrightInfo="' + CCLICopyRightInfo + '" CCLILicenseNumber="' + CCLILicenceNumber + '" chordChartPath=""><timeline timeOffSet="0" selectedMediaTrackIndex="0" unitOfMeasure="60" duration="0" loop="0"><timeCues containerClass="NSMutableArray"></timeCues><mediaTracks containerClass="NSMutableArray"></mediaTracks></timeline><bibleReference containerClass="NSMutableDictionary"></bibleReference><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject><groups containerClass="NSMutableArray">'
 
 
 def FooterBlock():
@@ -209,131 +222,144 @@ def filterbyfield(id,table,field='id'):
 ###################################################
 
 
-# First load the data from the OpenLP database:
+def main():
 
-
-try:
-    con = None
-
-    ## Fetch all the data first. Gets it in memory to use, rather than loads of SQLlite queries.
-
-    print ("OpenLP to Pro-Presenter 5 converter.\n")
-    print ("Loading Database:\n  " + os.path.expanduser(OPENLP_DATABASE) + "\n")
-
-    con = sql.connect(os.path.expanduser(OPENLP_DATABASE))
-    con.row_factory = sql.Row
-
-    cur = con.cursor()
-    cur.execute('SELECT id, title, ccli_number, song_number, copyright, comments, lyrics FROM songs')
-    songs = cur.fetchall()
-
-    cur.execute('SELECT id, display_name FROM authors')
-    authors = cur.fetchall()
-
-    cur.execute('SELECT song_id, author_id FROM authors_songs')
-    authors_songs = cur.fetchall()
-
-    print ('  Cool.  ' + str(len(songs)) + ' songs loaded.\n' );
-
-    # Database helper functions:
-
-    def get_authorname(id):
-        names = filterbyfield(id,authors)
-        if len(names) == 0:
-            return ''
-        else:
-            return xml_tag_clean(names[0]['display_name'])
-
-    def get_song_authors(song_id):
-        return filterbyfield(song_id,authors_songs,'song_id')
-
-
-    def get_song_authornames(song_id):
-        return ' &amp; '.join(map (get_authorname, map (lambda x: x['author_id'], get_song_authors(song_id))))
-
-except:
-
-    print ("Sorry - There was a problem loading the OpenLP Database.\n"\
-          +"(" + OPENLP_DATABASE + ")\n"\
-          +"Maybe OpenLP isn't set up on this user?\n\n"\
-          +"If you know where the database is, you can edit the path at the top of this script\n"\
-          +"And set it manually.")
-    exit()
-
-
-# Now go through songs and output the files.
-
-print ("And writing the new files to\n  " + OUTPUT_DIRECTORY + "\n")
-
-for song_raw in songs:
-
-    # Clean out non-XML happy characters...
-
-    song = {}
-    for field in ['title','ccli_number','song_number','copyright', 'comments']:
-        song[field] = xml_tag_clean(song_raw[field])
-
-    song_lyrics = xml.dom.minidom.parseString(song_raw['lyrics'])
-
-    song_authors = get_song_authornames(song_raw['id'])
-
-    # Find the copyright year (this would be briefer in perl...)
-
-    get_year = re.match(r'^\d\d\d\d', song['copyright'])
-
-    if get_year != None:
-        copyright_year = get_year.group()
-        song['copyright'] = song['copyright'][4:].strip()
-    else:
-        copyright_year = ''
-
-    # Open the appropriate file:
+    # First load the data from the OpenLP database:
 
     try:
+        con = None
 
-        f = open(OUTPUT_DIRECTORY + song['title'].replace('/','') + '.pro5','w')
+        ## Fetch all the data first. Gets it in memory to use, rather than loads of SQLlite queries.
 
-        # Write the header
+        print ("OpenLP to Pro-Presenter 5 converter.\n")
+        print ("Loading Database:\n  " + os.path.expanduser(OPENLP_DATABASE) + "\n")
 
-        f.write(HeaderBlock(Name              = uni(song['title']),
-                            CCLILicenceNumber = uni(song['ccli_number']),
+        con = sql.connect(os.path.expanduser(OPENLP_DATABASE))
+        con.row_factory = sql.Row
+
+        cur = con.cursor()
+        cur.execute('SELECT id, title, ccli_number, song_number, copyright, comments, lyrics FROM songs')
+        songs = cur.fetchall()
+
+        cur.execute('SELECT id, display_name FROM authors')
+        authors = cur.fetchall()
+
+        cur.execute('SELECT song_id, author_id FROM authors_songs')
+        authors_songs = cur.fetchall()
+
+        print ('  Cool.  ' + str(len(songs)) + ' songs loaded.\n' );
+
+        # Database helper functions:
+        
+        # I tried profiling this lot, as they're by far the slowest part of 
+        # the program. Sadly it seems to be slightly slower calling sqlite 
+        # to filter the author names per song for us, although there's not
+        # much in it, to be honest.
+
+        def get_authorname(id):
+            names = filterbyfield(id,authors)
+            if len(names) == 0:
+                return ''
+            else:
+                return xml_tag_clean(names[0]['display_name'])
+       
+
+        def get_song_authors(song_id):
+            return filterbyfield(song_id,authors_songs,'song_id')
+       
+
+        def get_song_authornames(song_id):
+            return ' &amp; '.join(map (get_authorname, 
+                                       map (lambda x: x['author_id'], get_song_authors(song_id))))
+
+    except:
+
+        print ("Sorry - There was a problem loading the OpenLP Database.\n" +
+              "(" + OPENLP_DATABASE + ")\n" +
+              "Maybe OpenLP isn't set up on this user?\n\n" +
+              "If you know where the database is, you can edit the path at the top of this script\n" +
+              "And set it manually.")
+        exit()
+
+
+    # Now go through songs and output the files.
+
+    print ("And writing the new files to\n  " + OUTPUT_DIRECTORY + "\n")
+
+
+    for song_raw in songs:
+
+        # Clean out non-XML happy characters...
+
+        song = {}
+        for field in ['title','ccli_number','song_number','copyright', 'comments']:
+            song[field] = xml_tag_clean(song_raw[field])
+
+        song_lyrics = xml.dom.minidom.parseString(song_raw['lyrics'])
+
+        song_authors = get_song_authornames(song_raw['id'])
+
+        # Find the copyright year (this would be briefer in perl...)
+
+        get_year = re.match(r'^\d\d\d\d', song['copyright'])
+
+        if get_year != None:
+            copyright_year = get_year.group()
+            song['copyright'] = song['copyright'][4:].strip()
+        else:
+            copyright_year = ''
+
+        # Open the appropriate file:
+
+        try:
+           
+            f = open(OUTPUT_DIRECTORY + song['title'].replace('/','') + '.pro5','w')
+
+            # Write the header
+
+            f.write( HeaderBlock(Name              = uni(song['title']),
+                                CCLILicenceNumber = uni(song['ccli_number']),
                             Notes             = uni(song['comments']),
                             CCLICopyRightInfo = uni(copyright_year),
                             Publisher         = uni(song['copyright']),
                             Authors           = song_authors) )
 
-        # Write the verses (slides)
+            # Write the verses (slides)
 
-        song_sections = song_lyrics.getElementsByTagName('verse')
-        song_sections.reverse()
+            song_sections = song_lyrics.getElementsByTagName('verse')
+            song_sections.reverse()
 
-        for verse in song_sections:
-            f.write ( VerseBlock( Verbose_names(verse.getAttribute('type')) + ' ' + verse.getAttribute('label'),
-                                  verse.getAttribute('type'),
-                                  map(lambda x: x.nodeValue, verse.childNodes),
-                                  color = CHORUS_COLOR if verse.getAttribute('type') == 'c'\
-                                                       else VERSE_COLORS[int(verse.getAttribute('label'))]  ) )
+            for verse in song_sections:
+                f.write(VerseBlock( Verbose_names(verse.getAttribute('type')) + ' ' + verse.getAttribute('label'),
+                                      verse.getAttribute('type'),
+                                      map(lambda x: x.nodeValue, verse.childNodes),
+                                      color = CHORUS_COLOR if verse.getAttribute('type') == 'c'\
+                                                           else VERSE_COLORS[int(verse.getAttribute('label'))])) 
 
-        # And the footer, and close.
+            # And the footer, and close.
 
-        f.write ( FooterBlock() )
-        f.close()
-
-    except:
-
-        print ('Oh dear. Something went wrong with writing "' + song['title'] + '".\nSorry.\n\n' +
-               'Maybe it\'s a file-write permissions issue?\n' +
-               'You could try changing where this script is writing to, it\'s the line\n' +
-               '  OUTPUT_DIRECTORY="' + OUTPUT_DIRECTORY + '"\n' +
-               'that will need to be changed.' )
-
-        try:
+            f.write ( FooterBlock() )
             f.close()
+
         except:
-            pass
 
-        exit();
+            print ('Oh dear. Something went wrong with writing "' + song['title'] + '".\nSorry.\n\n' +
+                   'Maybe it\'s a file-write permissions issue?\n' +
+                   'You could try changing where this script is writing to, it\'s the line\n' +
+                   '  OUTPUT_DIRECTORY="' + OUTPUT_DIRECTORY + '"\n' +
+                   'that will need to be changed.' )
 
-print ("Finished.")
-if OPEN_DIR_ON_EXIT:
-    os.system('open "' + OUTPUT_DIRECTORY + '"')
+            try:
+                f.close()
+            except:
+                pass
+
+            exit();
+
+
+    print ("Finished.")
+    if OPEN_DIR_ON_EXIT:
+        os.system('open "' + OUTPUT_DIRECTORY + '"')
+
+if __name__ == "__main__":
+    main()
