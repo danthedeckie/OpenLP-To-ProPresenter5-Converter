@@ -1,14 +1,18 @@
 # OpenLP to ProPresenter 5 converter
 
-This is a quick fast converter from OpenLP's sqlite database to ProPresenter 5 XML files.
+This is a simple fast converter from OpenLP's sqlite database to ProPresenter 5 XML files.
 
-It works very fast, and does our 2800 song database in about 10 seconds.
+It works quickly, and does our 2800 song database in about 10 seconds.
 
 Work in Progress, Please enjoy.
 
-## Use:
+## How to use:
 
-Currently a bit basic.
+Currently a bit basic, written to run on OSX.  It should be very easy to port to Windows/Linux/etc.
+
+> python converter.py
+
+that's it.
 
 The script will try to load the database from
 
@@ -31,6 +35,10 @@ the background color as black, and the text color as white.
 It will put a maximum of 4 lines per slide.
 
 These settings are all at the top of the converter.py script, and should be very easy to change.
+
+## Requirements:
+
+Python. (2.6ish) Should come built-in on OSX.
 
 ## TODO:
 
