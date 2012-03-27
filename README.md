@@ -50,7 +50,9 @@ Python. (2.6ish) Should come built-in on OSX.
 ## Licence:
 
 Public Domain.  It's so basic, do what you want with this.  If you do appreciate it, please
-consider a donation to OMNIvision, which is a team in OM (www.om.org), who actually wrote this
-script. http://www.omnivision.om.org
+consider a donation to OMNIvision, which is a team in OM (www.om.org), we're the ones who 
+actually wrote this script.
+
+http://www.omnivision.om.org
 
 
