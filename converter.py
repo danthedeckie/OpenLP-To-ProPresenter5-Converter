@@ -76,6 +76,13 @@ from base64 import b64encode     # For ProPresenter RTF Data blobs
 from uuid import uuid1           # For ProPresenter Slide UUIDs
 from datetime import datetime    # Guess.
 
+# Apparently it's faster / better to compile regex:
+
+__re_uni_x = re.compile(r'\\x..')      # Unicode \x form
+__re_uni_u = re.compile(r'\\u....')    # Unicode \u form
+__re_year = re.compile(r'^\d\d\d\d')   # Year from Copyright String
+__re_xml_attr = re.compile('[<>\n"]')  # Stuff to strip from XML attributes
+
 ###################################################
 #
 # Short generic(ish) useful functions:
@@ -84,7 +91,8 @@ from datetime import datetime    # Guess.
 
 
 def xml_attr(text):
-    return re.sub('[<>\n"]', ' ', text.replace('&', '&amp;')) if text != None else ''
+    return re.sub(__re_xml_attr, ' ', text.replace('&', '&amp;')) if text != None else ''
+
 
 def make_uuid():
     return uuid1().__str__().upper()
@@ -104,6 +112,7 @@ def Verbose_names(key):
 # I *never* want to work with RTF again.
 
 
+
 def AntiUnicode(text):
 
     def escape_u(t):
@@ -112,8 +121,8 @@ def AntiUnicode(text):
             For use in a re.sub function as the callback. """
         return r'\u' + unicode(int(t.group()[2:], 16)) + ' '
 
-    return re.sub(r"\\x..",       escape_u,
-               re.sub(r"\\u....", escape_u,
+    return re.sub(__re_uni_x,   escape_u,
+               re.sub(__re_uni_u, escape_u,
                    text.encode('unicode-escape')))\
            .replace(r'\n','\\\n')
 
@@ -195,6 +204,7 @@ def HeaderBlock(Name='New Song',
 
 #def FooterBlock():
 FooterBlock = '</groups><arrangements containerClass="NSMutableArray"></arrangements></RVPresentationDocument>'
+
 
 
 ###########
@@ -302,7 +312,7 @@ def main():
 
         # Find the copyright year (this would be briefer in perl...)
 
-        get_year = re.match(r'^\d\d\d\d', xml_attr(song['copyright']))
+        get_year = re.match(__re_year, xml_attr(song['copyright']))
 
         if get_year != None:
             copyright_year = get_year.group()

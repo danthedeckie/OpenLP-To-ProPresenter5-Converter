@@ -44,6 +44,7 @@ Python. (2.6ish) Should come built-in on OSX.
 
 - Make it rugged
 - Make it pretty
+- - (Maybe auto italic (repeat) lines...)
 - Make a .app & .exe (with simple GUIs)
 - Make profit. (or not...)
 
