@@ -70,13 +70,11 @@ reload(sys)                      # Stupid hack to re-apply UTF-8 if it
 sys.setdefaultencoding('utf-8')  #    Oh for Py3k everywhere.
 
 import re                        # For regexy stuff.
-import xml.dom.minidom           # OpenLP lyric data stored as XML.
-from xml.dom.minidom import Node
+import xml.parsers.expat         # For Parsing OpenLP Lyrics Data
 
 from base64 import b64encode     # For ProPresenter RTF Data blobs
-from uuid import uuid4           # For ProPresenter Slide UUIDs
+from uuid import uuid1           # For ProPresenter Slide UUIDs
 from datetime import datetime    # Guess.
-
 
 ###################################################
 #
@@ -84,18 +82,12 @@ from datetime import datetime    # Guess.
 #
 ###################################################
 
-def uni(x):
-    """ Turns 'None' from empty sqlite columns into an empty string,
-        or else returns the original string. """
-    return x if x != None else ''
 
-
-def xml_tag_clean(text):
-    return re.sub('[<>\n"]', ' ', uni(text)).replace('&', '&amp;')
-
+def xml_attr(text):
+    return re.sub('[<>\n"]', ' ', text.replace('&', '&amp;')) if text != None else ''
 
 def make_uuid():
-    return uuid4().__str__().upper()
+    return uuid1().__str__().upper()
 
 
 def Verbose_names(key):
@@ -133,19 +125,18 @@ def MakeRTFBlob(text):
            + '\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\qc\\pardirnatural\n\n'
            + '\\f0\\fs102\\fsmilli51200 \\cf1 \\expnd0\\expndtw0\\kerning0\n\\outl0\\strokewidth-20 \\strokec0 \\uc0 ' + AntiUnicode(text) + '}')
 
-# XML sections.
+
+########################
+#
+# XML sections. (To be written to ProPresenter files)
+#
+########################
 
 # This is messy, and there is no way to help it,
 # besides having a separate template file.
 
 
 def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
-
-    #def splitmap ( split_func, list_to_split ):
-    #    current_list = []
-    #    for item in list_to_split:
-    #        current_list += 
-    #    return
 
     def list_split_substrings_by_lines(max_lines, oldlist):
         # Very imperative, I know.  There's probably a better
@@ -175,7 +166,6 @@ def VerseBlock(block_name, block_type, text_sections, color='0 0 0 0'):
             newlist += item.split(split_by)
         return newlist
 
-
     all_sections = map(unicode.strip,
                        list_split_substrings_by_lines(MAX_LINES,  
                            list_split_substrings('\n\n', 
@@ -203,16 +193,46 @@ def HeaderBlock(Name='New Song',
     return '<RVPresentationDocument height="768" width="1024" versionNumber="500" docType="0" creatorCode="1349676880" lastDateUsed="' + datetime.now().strftime('%Y-%m-%dT%H:%M:%S') + '" usedCount="0" category="Song" resourcesDirectory="" backgroundColor="0 0 0 1" drawingBackgroundColor="0" notes="' + Notes + '" artist="' + Artist + '" author="' + Authors + '" album="" CCLIDisplay="0" CCLIArtistCredits="" CCLISongTitle="' + Name + '" CCLIPublisher="' + Publisher + '" CCLICopyrightInfo="' + CCLICopyRightInfo + '" CCLILicenseNumber="' + CCLILicenceNumber + '" chordChartPath=""><timeline timeOffSet="0" selectedMediaTrackIndex="0" unitOfMeasure="60" duration="0" loop="0"><timeCues containerClass="NSMutableArray"></timeCues><mediaTracks containerClass="NSMutableArray"></mediaTracks></timeline><bibleReference containerClass="NSMutableDictionary"></bibleReference><_-RVProTransitionObject-_transitionObject transitionType="-1" transitionDuration="1" motionEnabled="0" motionDuration="20" motionSpeed="100"></_-RVProTransitionObject-_transitionObject><groups containerClass="NSMutableArray">'
 
 
-def FooterBlock():
-    return '</groups><arrangements containerClass="NSMutableArray"></arrangements></RVPresentationDocument>'
+#def FooterBlock():
+FooterBlock = '</groups><arrangements containerClass="NSMutableArray"></arrangements></RVPresentationDocument>'
 
 
+###########
+#
+# (OpenLP) Lyrics XML Parsing
+#
+###########
 
+def ParseLyric(text):
+    current_verses = []
+
+    def _element(name, attrs):
+        if name == 'verse':
+            current_verses.append(attrs)
+            current_verses[-1]['text'] = []
+
+    def _chardata(data):
+        current_verses[-1]['text'].append(data)
+        
+    parser = xml.parsers.expat.ParserCreate()
+    parser.StartElementHandler = _element
+    parser.CharacterDataHandler = _chardata
+    parser.buffer_text = True
+
+    parser.Parse(text,True)
+
+    current_verses.reverse() #Not really sure why we need this...
+
+    return current_verses
+
+#######
+#
 # Database functions:
-
+#
+#######
 
 def filterbyfield(id,table,field='id'):
-    return filter(lambda x: x[field]==id, table)
+    return [row for row in table if row[field] == id]
 
 
 ###################################################
@@ -223,16 +243,19 @@ def filterbyfield(id,table,field='id'):
 
 
 def main():
-
     # First load the data from the OpenLP database:
 
     try:
         con = None
 
-        ## Fetch all the data first. Gets it in memory to use, rather than loads of SQLlite queries.
+        # Fetch all the data first. Gets it in memory to use, rather than
+        # loads of SQLlite queries. This seems to be faster, with a little 
+        # profiling.  If re-writing it as loads of sqlite queries
+        # works better for you, I'm cool with that too.
 
         print ("OpenLP to Pro-Presenter 5 converter.\n")
-        print ("Loading Database:\n  " + os.path.expanduser(OPENLP_DATABASE) + "\n")
+        print ("Loading Database:\n  "
+                + os.path.expanduser(OPENLP_DATABASE) + "\n")
 
         con = sql.connect(os.path.expanduser(OPENLP_DATABASE))
         con.row_factory = sql.Row
@@ -240,9 +263,11 @@ def main():
         cur = con.cursor()
         cur.execute('SELECT id, title, ccli_number, song_number, copyright, comments, lyrics FROM songs')
         songs = cur.fetchall()
-
+        
         cur.execute('SELECT id, display_name FROM authors')
-        authors = cur.fetchall()
+        authors = dict()
+        for author in cur.fetchall():
+            authors[author['id']] = author['display_name']
 
         cur.execute('SELECT song_id, author_id FROM authors_songs')
         authors_songs = cur.fetchall()
@@ -251,34 +276,19 @@ def main():
 
         # Database helper functions:
         
-        # I tried profiling this lot, as they're by far the slowest part of 
-        # the program. Sadly it seems to be slightly slower calling sqlite 
-        # to filter the author names per song for us, although there's not
-        # much in it, to be honest.
-
-        def get_authorname(id):
-            names = filterbyfield(id,authors)
-            if len(names) == 0:
-                return ''
-            else:
-                return xml_tag_clean(names[0]['display_name'])
-       
-
-        def get_song_authors(song_id):
-            return filterbyfield(song_id,authors_songs,'song_id')
-       
-
         def get_song_authornames(song_id):
-            return ' &amp; '.join(map (get_authorname, 
-                                       map (lambda x: x['author_id'], get_song_authors(song_id))))
+            return ' &amp; '.join(
+                [authors[id] for id in 
+                    [row['author_id'] for row in authors_songs 
+                        if row['song_id'] == song_id]])
 
     except:
 
         print ("Sorry - There was a problem loading the OpenLP Database.\n" +
               "(" + OPENLP_DATABASE + ")\n" +
               "Maybe OpenLP isn't set up on this user?\n\n" +
-              "If you know where the database is, you can edit the path at the top of this script\n" +
-              "And set it manually.")
+              "If you know where the database is, you can edit the path at \n" +
+              "the top of this script and set it manually.")
         exit()
 
 
@@ -286,63 +296,47 @@ def main():
 
     print ("And writing the new files to\n  " + OUTPUT_DIRECTORY + "\n")
 
+    for song in songs:
 
-    for song_raw in songs:
-
-        # Clean out non-XML happy characters...
-
-        song = {}
-        for field in ['title','ccli_number','song_number','copyright', 'comments']:
-            song[field] = xml_tag_clean(song_raw[field])
-
-        song_lyrics = xml.dom.minidom.parseString(song_raw['lyrics'])
-
-        song_authors = get_song_authornames(song_raw['id'])
+        song_authors = get_song_authornames(song['id'])
 
         # Find the copyright year (this would be briefer in perl...)
 
-        get_year = re.match(r'^\d\d\d\d', song['copyright'])
+        get_year = re.match(r'^\d\d\d\d', xml_attr(song['copyright']))
 
         if get_year != None:
             copyright_year = get_year.group()
-            song['copyright'] = song['copyright'][4:].strip()
+            copyright = song['copyright'][4:].strip()
         else:
             copyright_year = ''
+            copyright = ''
 
-        # Open the appropriate file:
+
+        # Prepare Header Block to write:
+
+        to_write = ( HeaderBlock(Name          = xml_attr(song['title']),
+                             CCLILicenceNumber = xml_attr(song['ccli_number']),
+                             Notes             = xml_attr(song['comments']),
+                             CCLICopyRightInfo = xml_attr(copyright_year),
+                             Publisher         = xml_attr(copyright),
+                             Authors           = song_authors) )
+
+        # Prepare Verses to write: (funny python syntax...)
+
+        to_write += ''.join(
+            [VerseBlock(Verbose_names(v['type']) + ' ' + v['label'],
+                        v['type'],
+                        v['text'],
+                        color = CHORUS_COLOR if v['type'] == 'c'\
+                                             else VERSE_COLORS[int(v['label'])])
+            for v in ParseLyric(song['lyrics'])])
 
         try:
-           
+            # Now actually write the thing.
             f = open(OUTPUT_DIRECTORY + song['title'].replace('/','') + '.pro5','w')
-
-            # Write the header
-
-            f.write( HeaderBlock(Name              = uni(song['title']),
-                                CCLILicenceNumber = uni(song['ccli_number']),
-                            Notes             = uni(song['comments']),
-                            CCLICopyRightInfo = uni(copyright_year),
-                            Publisher         = uni(song['copyright']),
-                            Authors           = song_authors) )
-
-            # Write the verses (slides)
-
-            song_sections = song_lyrics.getElementsByTagName('verse')
-            song_sections.reverse()
-
-            for verse in song_sections:
-                f.write(VerseBlock( Verbose_names(verse.getAttribute('type')) + ' ' + verse.getAttribute('label'),
-                                      verse.getAttribute('type'),
-                                      map(lambda x: x.nodeValue, verse.childNodes),
-                                      color = CHORUS_COLOR if verse.getAttribute('type') == 'c'\
-                                                           else VERSE_COLORS[int(verse.getAttribute('label'))])) 
-
-            # And the footer, and close.
-
-            f.write ( FooterBlock() )
+            f.write ( to_write + FooterBlock )
             f.close()
-
         except:
-
             print ('Oh dear. Something went wrong with writing "' + song['title'] + '".\nSorry.\n\n' +
                    'Maybe it\'s a file-write permissions issue?\n' +
                    'You could try changing where this script is writing to, it\'s the line\n' +
@@ -355,7 +349,6 @@ def main():
                 pass
 
             exit();
-
 
     print ("Finished.")
     if OPEN_DIR_ON_EXIT:
