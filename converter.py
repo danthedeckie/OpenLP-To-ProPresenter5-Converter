@@ -91,7 +91,7 @@ __re_xml_attr = re.compile('[<>\n"]')  # Stuff to strip from XML attributes
 
 
 def xml_attr(text):
-    return re.sub(__re_xml_attr, ' ', text.replace('&', '&amp;')) if text != None else ''
+    return re.sub(__re_xml_attr, ' ', text.replace('&', '&amp;').replace('"', '&quot;') if text != None else ''
 
 
 def make_uuid():
@@ -329,7 +329,7 @@ def main():
                              Notes             = xml_attr(song['comments']),
                              CCLICopyRightInfo = xml_attr(copyright_year),
                              Publisher         = xml_attr(copyright),
-                             Authors           = song_authors) )
+                             Authors           = xml_attr(song_authors)) )
 
         # Prepare Verses to write: (funny python syntax...)
 
