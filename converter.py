@@ -33,7 +33,7 @@ MAX_LINES = 4
 OPEN_DIR_ON_EXIT = True  # If you want to open the dir of new files...
 
 # Options you probably don't need to edit, but can easily enough:
-
+MAX_VERSE_COLORS = 14               # Number of defined colors for verses
 VERSE_COLORS = ['0 0 1 1',    # 0 = Blue
                 '0 1 0 1',    # 1 = Green
                 '1 0.5 0 1',  # 2 = Orange
@@ -340,7 +340,7 @@ def main():
                         v['type'],
                         v['text'],
                         color = CHORUS_COLOR if v['type'] == 'c'\
-                                             else VERSE_COLORS[int(v['label'])])
+                                             else VERSE_COLORS[min(MAX_VERSE_COLORS-1,int(v['label']))])
             for v in ParseLyric(song['lyrics'])])
 
         try:
